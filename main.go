@@ -1,13 +1,15 @@
 package main
 
 import (
-	"github.com/PreetamJinka/sflow-go"
+	"github.com/PreetamJinka/sflow"
 	"github.com/PreetamJinka/udpchan"
 
 	"bufio"
+	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net"
 	"os"
 	"runtime"
@@ -22,7 +24,15 @@ func main() {
 
 	ip := getIP()
 
-	ch, _ := udpchan.Connect(*outbound)
+	ch, err := udpchan.Connect(*outbound)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	buf := &bytes.Buffer{}
+
+	enc := sflow.NewEncoder(ip, 23000, 100)
+
 	for _ = range time.Tick(time.Second * 5) {
 		stats := []sflow.Record{}
 
@@ -36,12 +46,19 @@ func main() {
 			stats = append(stats, mem)
 		}
 
+		cs := &sflow.CounterSample{}
+		cs.Records = stats
+
+		err = enc.Encode(buf, []sflow.Sample{cs})
+
 		if err == nil {
-			ch <- sflow.Encode(ip, 1, 0,
-				1, 1, 1, 1, stats)
+			ch <- buf.Bytes()
+			log.Println("Sent a datagram")
 		} else {
-			fmt.Println(err)
+			log.Println(err)
 		}
+
+		buf.Reset()
 	}
 }
 
