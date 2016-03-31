@@ -62,16 +62,16 @@ func main() {
 	}
 }
 
-func getCpuStats() (*sflow.HostCpuCounters, error) {
+func getCpuStats() (*sflow.HostCPUCounters, error) {
 	loadAvgBytes, err := ioutil.ReadFile("/proc/loadavg")
 	if err != nil {
 		return nil, err
 	}
 
-	c := sflow.HostCpuCounters{}
+	c := sflow.HostCPUCounters{}
 
 	fmt.Sscanf(string(loadAvgBytes), "%f %f %f %d/%d", &c.Load1m, &c.Load5m, &c.Load15m,
-		&c.ProcsRunning, &c.ProcsTotal)
+		&c.ProcessesRunning, &c.ProcessesTotal)
 
 	c.NumCPU = uint32(runtime.NumCPU())
 
@@ -85,8 +85,8 @@ func getCpuStats() (*sflow.HostCpuCounters, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Sscanf(string(cpuStatBytes), "cpu %d %d %d %d %d %d %d", &c.CpuUser, &c.CpuNice, &c.CpuSys, &c.CpuIdle,
-		&c.CpuWio, &c.CpuIntr, &c.CpuSoftIntr)
+	fmt.Sscanf(string(cpuStatBytes), "cpu %d %d %d %d %d %d %d", &c.CPUUser, &c.CPUNice, &c.CPUSys, &c.CPUIdle,
+		&c.CPUWio, &c.CPUIntr, &c.CPUSoftIntr)
 
 	return &c, nil
 }
